@@ -304,42 +304,58 @@ async function transcribeAudio(audioBlob) {
 // --- TTS ---
 // ============================================================
 let currentUtterance = null;
+let ttsReady = false;
+
+function primeTTS() {
+  const synth = window.speechSynthesis;
+  if (!synth) return;
+  const dummy = new SpeechSynthesisUtterance('');
+  dummy.volume = 0;
+  synth.speak(dummy);
+  setTimeout(() => { synth.cancel(); ttsReady = true; }, 50);
+}
 
 function speakText(text) {
-  stopSpeaking();
   const synth = window.speechSynthesis;
   if (!synth) return;
 
-  const utterance = new SpeechSynthesisUtterance(text);
+  stopSpeaking();
 
-  let voices = synth.getVoices();
-  if (!voices.length) {
-    voices = synth.getVoices(); // some browsers need a second call
-  }
-  const indianVoice = voices.find(v =>
-    v.lang.startsWith('hi') || v.lang.startsWith('en-IN') ||
-    v.lang.startsWith('te') || v.name.toLowerCase().includes('india')
-  );
-  if (indianVoice) utterance.voice = indianVoice;
+  setTimeout(() => {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
 
-  utterance.rate = 1.0;
-  utterance.pitch = 1.0;
-  utterance.volume = 1.0;
+    synth.resume();
 
-  utterance.onstart = () => {
-    document.getElementById('stopBtn').disabled = false;
-  };
-  utterance.onend = () => {
-    document.getElementById('stopBtn').disabled = true;
-    currentUtterance = null;
-  };
-  utterance.onerror = () => {
-    document.getElementById('stopBtn').disabled = true;
-    currentUtterance = null;
-  };
+    const utterance = new SpeechSynthesisUtterance(text);
 
-  currentUtterance = utterance;
-  synth.speak(utterance);
+    let voices = synth.getVoices();
+    if (!voices.length) voices = synth.getVoices();
+    const indianVoice = voices.find(v =>
+      v.lang.startsWith('hi') || v.lang.startsWith('en-IN') ||
+      v.lang.startsWith('te') || v.name.toLowerCase().includes('india')
+    );
+    if (indianVoice) utterance.voice = indianVoice;
+
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    utterance.onstart = () => {
+      document.getElementById('stopBtn').disabled = false;
+    };
+    utterance.onend = () => {
+      document.getElementById('stopBtn').disabled = true;
+      currentUtterance = null;
+    };
+    utterance.onerror = (e) => {
+      document.getElementById('stopBtn').disabled = true;
+      currentUtterance = null;
+    };
+
+    currentUtterance = utterance;
+    synth.speak(utterance);
+  }, 100);
 }
 
 function stopSpeaking() {
@@ -531,6 +547,11 @@ document.addEventListener('DOMContentLoaded', () => {
     geminiKey = defaultKey;
     document.getElementById('apiKeyInput').type = 'password';
   }
+
+  // Wake speech synthesis on first user click (required by Chrome HTTPS policy)
+  document.addEventListener('click', () => {
+    if (!ttsReady) { primeTTS(); }
+  }, { once: true });
 
   // Welcome message
   appendMessage('bot', 'Namaste! \uD83D\uDC4B Main aapka voice assistant hoon. Aap kya chahenge?');
