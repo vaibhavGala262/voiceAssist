@@ -214,6 +214,7 @@ async function startListening() {
       if (e.data.size > 0) audioChunks.push(e.data);
     };
 
+    const stream = audioStream;
     mediaRecorder.onstop = async () => {
       isRecording = false;
       document.getElementById('micBtn').classList.remove('active');
@@ -221,8 +222,9 @@ async function startListening() {
       document.getElementById('micLabel').classList.remove('active');
 
       const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-      audioStream.getTracks().forEach(t => t.stop());
-      audioStream = null;
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+      }
 
       if (audioBlob.size < 1000) {
         showError('No audio detected. Please try again.');
@@ -256,10 +258,6 @@ async function startListening() {
 function stopRecording() {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
     mediaRecorder.stop();
-  }
-  if (audioStream) {
-    audioStream.getTracks().forEach(t => t.stop());
-    audioStream = null;
   }
   isRecording = false;
   document.getElementById('micBtn').classList.remove('active');
