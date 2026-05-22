@@ -1,319 +1,543 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Sanskar Voice Bot</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
       min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 16px;
     }
+
     .card {
-      background: rgba(255,255,255,0.06);
+      background: rgba(255, 255, 255, 0.06);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 24px;
       padding: 24px;
-      max-width: 480px; width: 100%;
-      box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
     }
+
     h1 {
-      text-align: center; color: #fff; font-weight: 600; font-size: 22px;
-      letter-spacing: 0.3px; margin-bottom: 20px;
+      text-align: center;
+      color: #fff;
+      font-weight: 600;
+      font-size: 22px;
+      letter-spacing: 0.3px;
+      margin-bottom: 20px;
     }
+
     .api-row {
-      display: flex; gap: 8px; margin-bottom: 18px;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
     }
+
     .api-row input {
-      flex: 1; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);
-      background: rgba(255,255,255,0.08); color: #eee; font-size: 13px; outline: none;
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.08);
+      color: #eee;
+      font-size: 13px;
+      outline: none;
       transition: border 0.2s;
     }
-    .api-row input::placeholder { color: #888; }
-    .api-row input:focus { border-color: #a78bfa; }
+
+    .api-row input::placeholder {
+      color: #888;
+    }
+
+    .api-row input:focus {
+      border-color: #a78bfa;
+    }
+
     .api-row button {
-      padding: 10px 18px; border-radius: 12px; border: none; cursor: pointer;
-      background: #a78bfa; color: #fff; font-weight: 600; font-size: 13px; white-space: nowrap;
+      padding: 10px 18px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      background: #a78bfa;
+      color: #fff;
+      font-weight: 600;
+      font-size: 13px;
+      white-space: nowrap;
       transition: background 0.2s;
     }
-    .api-row button:hover { background: #8b6fe6; }
 
-    .mic-area { text-align: center; margin: 10px 0 16px; }
+    .api-row button:hover {
+      background: #8b6fe6;
+    }
+
+    .mic-area {
+      text-align: center;
+      margin: 10px 0 16px;
+    }
+
     .mic-btn {
-      width: 80px; height: 80px; border-radius: 50%; border: none; cursor: pointer;
-      background: #555; color: #fff; font-size: 36px; transition: all 0.25s;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      background: #555;
+      color: #fff;
+      font-size: 36px;
+      transition: all 0.25s;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      position: relative;
     }
-    .mic-btn.active { background: #e53935; }
+
+    .mic-btn.active {
+      background: #e53935;
+    }
+
     .mic-btn.active::after {
-      content: ''; position: absolute; inset: -6px; border-radius: 50%;
-      border: 3px solid #e53935; animation: pulse-ring 1.2s ease-in-out infinite;
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 3px solid #e53935;
+      animation: pulse-ring 1.2s ease-in-out infinite;
     }
+
     @keyframes pulse-ring {
-      0% { transform: scale(1); opacity: 0.8; }
-      100% { transform: scale(1.35); opacity: 0; }
+      0% {
+        transform: scale(1);
+        opacity: 0.8;
+      }
+
+      100% {
+        transform: scale(1.35);
+        opacity: 0;
+      }
     }
-    .mic-label { color: #aaa; font-size: 12px; margin-top: 6px; }
-    .mic-label.active { color: #ef9a9a; }
+
+    .mic-label {
+      color: #aaa;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .mic-label.active {
+      color: #ef9a9a;
+    }
 
     .transcript-box {
-      background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px 16px;
-      min-height: 44px; margin-bottom: 16px; color: #ccc; font-size: 14px;
-      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 12px 16px;
+      min-height: 44px;
+      margin-bottom: 16px;
+      color: #ccc;
+      font-size: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
     }
-    .transcript-box .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
 
-    .chat-container { max-height: 320px; overflow-y: auto; margin-bottom: 12px; padding-right: 4px; }
-    .chat-container::-webkit-scrollbar { width: 4px; }
-    .chat-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+    .transcript-box .label {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
 
-    .msg { margin-bottom: 12px; display: flex; flex-direction: column; }
-    .msg.user { align-items: flex-end; }
-    .msg.bot { align-items: flex-start; }
+    .chat-container {
+      max-height: 320px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      padding-right: 4px;
+    }
+
+    .chat-container::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    .msg {
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .msg.user {
+      align-items: flex-end;
+    }
+
+    .msg.bot {
+      align-items: flex-start;
+    }
+
     .bubble {
-      max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.45;
-      word-wrap: break-word; position: relative;
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.45;
+      word-wrap: break-word;
+      position: relative;
     }
-    .msg.user .bubble {
-      background: #7c4dff; color: #fff; border-bottom-right-radius: 4px;
-    }
-    .msg.bot .bubble {
-      background: rgba(255,255,255,0.10); color: #eee; border-bottom-left-radius: 4px;
-    }
-    .time { font-size: 10px; color: #777; margin-top: 3px; padding: 0 4px; }
 
-    .typing { text-align: left; margin-bottom: 12px; }
-    .typing-dots { display: inline-flex; gap: 4px; align-items: center; }
+    .msg.user .bubble {
+      background: #7c4dff;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg.bot .bubble {
+      background: rgba(255, 255, 255, 0.10);
+      color: #eee;
+      border-bottom-left-radius: 4px;
+    }
+
+    .time {
+      font-size: 10px;
+      color: #777;
+      margin-top: 3px;
+      padding: 0 4px;
+    }
+
+    .typing {
+      text-align: left;
+      margin-bottom: 12px;
+    }
+
+    .typing-dots {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+    }
+
     .typing-dots span {
-      width: 8px; height: 8px; background: #a78bfa; border-radius: 50%;
+      width: 8px;
+      height: 8px;
+      background: #a78bfa;
+      border-radius: 50%;
       animation: dot-bounce 1.2s ease-in-out infinite;
     }
-    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes dot-bounce {
-      0%,80%,100% { transform: scale(0.6); opacity: 0.4; }
-      40% { transform: scale(1); opacity: 1; }
-    }
-    .typing-text { color: #aaa; font-size: 13px; margin-left: 8px; }
 
-    .bottom-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
-    .input-row input {
-      flex: 1; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);
-      background: rgba(255,255,255,0.08); color: #eee; font-size: 14px; outline: none;
+    .typing-dots span:nth-child(2) {
+      animation-delay: 0.2s;
     }
-    .input-row input::placeholder { color: #888; }
-    .input-row input:focus { border-color: #a78bfa; }
+
+    .typing-dots span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes dot-bounce {
+
+      0%,
+      80%,
+      100% {
+        transform: scale(0.6);
+        opacity: 0.4;
+      }
+
+      40% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .typing-text {
+      color: #aaa;
+      font-size: 13px;
+      margin-left: 8px;
+    }
+
+    .bottom-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .input-row input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.08);
+      color: #eee;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .input-row input::placeholder {
+      color: #888;
+    }
+
+    .input-row input:focus {
+      border-color: #a78bfa;
+    }
+
     .input-row button {
-      padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer;
-      background: #7c4dff; color: #fff; font-weight: 600; font-size: 14px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      background: #7c4dff;
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
       transition: background 0.2s;
     }
-    .input-row button:hover { background: #6a3de8; }
+
+    .input-row button:hover {
+      background: #6a3de8;
+    }
 
     .bottom-row button {
-      flex: 1; padding: 10px 0; border-radius: 12px; border: none; cursor: pointer;
-      font-size: 13px; font-weight: 500; transition: background 0.2s; min-width: 80px;
+      flex: 1;
+      padding: 10px 0;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.2s;
+      min-width: 80px;
     }
-    .stop-btn { background: rgba(255,255,255,0.08); color: #ccc; }
-    .stop-btn:hover { background: rgba(255,255,255,0.15); }
-    .stop-btn:disabled { opacity: 0.35; cursor: default; }
-    .download-btn { background: rgba(255,255,255,0.08); color: #ccc; }
-    .download-btn:hover { background: rgba(255,255,255,0.15); }
+
+    .stop-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ccc;
+    }
+
+    .stop-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .stop-btn:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    .download-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ccc;
+    }
+
+    .download-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
 
     .error-bar {
-      background: rgba(229,57,53,0.2); border: 1px solid rgba(229,57,53,0.3);
-      border-radius: 10px; padding: 10px 14px; color: #ef9a9a; font-size: 13px;
-      margin-bottom: 12px; display: none;
+      background: rgba(229, 57, 53, 0.2);
+      border: 1px solid rgba(229, 57, 53, 0.3);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #ef9a9a;
+      font-size: 13px;
+      margin-bottom: 12px;
+      display: none;
     }
 
     @media (max-width: 400px) {
-      .card { padding: 16px; }
-      .mic-btn { width: 66px; height: 66px; font-size: 28px; }
+      .card {
+        padding: 16px;
+      }
+
+      .mic-btn {
+        width: 66px;
+        height: 66px;
+        font-size: 28px;
+      }
     }
   </style>
 </head>
+
 <body>
-<div class="card">
-  <h1>&#x1F399; Voice Bot</h1>
+  <div class="card">
+    <h1>&#x1F399; Voice Bot</h1>
 
-  <div class="api-row">
-    <input id="apiKeyInput" type="password" placeholder="Paste Groq API key..." autocomplete="off">
-    <button id="saveKeyBtn">Save</button>
+    <div class="api-row">
+      <input id="apiKeyInput" type="password" placeholder="Paste Groq API key..." autocomplete="off">
+      <button id="saveKeyBtn">Save</button>
+    </div>
+
+    <div class="error-bar" id="errorBar"></div>
+
+    <div class="mic-area">
+      <button class="mic-btn" id="micBtn" title="Click to start / stop recording">&#x1F3A4;</button>
+      <div class="mic-label" id="micLabel">Tap to speak</div>
+    </div>
+
+    <div class="transcript-box" id="transcriptBox">
+      <div class="label">You said</div>
+      <span id="transcriptText">—</span>
+    </div>
+
+    <div class="chat-container" id="chatContainer"></div>
+
+    <div class="typing" id="typingIndicator" style="display:none;">
+      <span class="typing-text">Bot is typing...</span>
+      <span class="typing-dots"><span></span><span></span><span></span></span>
+    </div>
+
+    <div class="input-row">
+      <input id="textInput" type="text" placeholder="Type a message..." autocomplete="off">
+      <button id="sendBtn">Send</button>
+    </div>
+
+    <div class="bottom-row">
+      <button class="stop-btn" id="stopBtn" disabled>Stop Speaking</button>
+      <button class="download-btn" id="downloadBtn">Download Logs</button>
+    </div>
   </div>
 
-  <div class="error-bar" id="errorBar"></div>
+  <script>
+    // ============================================================
+    // --- STATE ---
+    // ============================================================
+    let geminiKey = '';
+    let conversation = [];           // {role: "user"|"model", parts: [{text: "..."}]}
+    let chatMessages = [];           // {type: "user"|"bot", text, time}
+    let isRecording = false;
+    let isWaiting = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let audioStream = null;
 
-  <div class="mic-area">
-    <button class="mic-btn" id="micBtn" title="Click to start / stop recording">&#x1F3A4;</button>
-    <div class="mic-label" id="micLabel">Tap to speak</div>
-  </div>
-
-  <div class="transcript-box" id="transcriptBox">
-    <div class="label">You said</div>
-    <span id="transcriptText">—</span>
-  </div>
-
-  <div class="chat-container" id="chatContainer"></div>
-
-  <div class="typing" id="typingIndicator" style="display:none;">
-    <span class="typing-text">Bot is typing...</span>
-    <span class="typing-dots"><span></span><span></span><span></span></span>
-  </div>
-
-  <div class="input-row">
-    <input id="textInput" type="text" placeholder="Type a message..." autocomplete="off">
-    <button id="sendBtn">Send</button>
-  </div>
-
-  <div class="bottom-row">
-    <button class="stop-btn" id="stopBtn" disabled>Stop Speaking</button>
-    <button class="download-btn" id="downloadBtn">Download Logs</button>
-  </div>
-</div>
-
-<script>
-// ============================================================
-// --- STATE ---
-// ============================================================
-let geminiKey = '';
-let conversation = [];           // {role: "user"|"model", parts: [{text: "..."}]}
-let chatMessages = [];           // {type: "user"|"bot", text, time}
-let isRecording = false;
-let isWaiting = false;
-let mediaRecorder = null;
-let audioChunks = [];
-let audioStream = null;
-
-// ============================================================
-// --- STT (MediaRecorder + Groq Whisper) ---
-// ============================================================
-async function startListening() {
-  if (!geminiKey) {
-    showError('Please save your Groq API key first.');
-    return;
-  }
-  if (isWaiting) {
-    showError('Please wait for the bot to finish responding.');
-    return;
-  }
-  stopSpeaking();
-
-  try {
-    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    audioChunks = [];
-    mediaRecorder = new MediaRecorder(audioStream, { mimeType: 'audio/webm' });
-
-    mediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) audioChunks.push(e.data);
-    };
-
-    const stream = audioStream;
-    mediaRecorder.onstop = async () => {
-      isRecording = false;
-      document.getElementById('micBtn').classList.remove('active');
-      document.getElementById('micLabel').textContent = 'Processing...';
-      document.getElementById('micLabel').classList.remove('active');
-
-      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-      if (stream) {
-        stream.getTracks().forEach(t => t.stop());
-      }
-
-      if (audioBlob.size < 1000) {
-        showError('No audio detected. Please try again.');
-        document.getElementById('micLabel').textContent = 'Tap to speak';
+    // ============================================================
+    // --- STT (MediaRecorder + Groq Whisper) ---
+    // ============================================================
+    async function startListening() {
+      if (!geminiKey) {
+        showError('Please save your Groq API key first.');
         return;
       }
+      if (isWaiting) {
+        showError('Please wait for the bot to finish responding.');
+        return;
+      }
+      stopSpeaking();
 
-      await transcribeAudio(audioBlob);
-    };
+      try {
+        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(audioStream, { mimeType: 'audio/webm' });
 
-    mediaRecorder.onerror = () => {
-      stopRecording();
-      showError('Microphone error. Please try again.');
-    };
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunks.push(e.data);
+        };
 
-    mediaRecorder.start();
-    isRecording = true;
-    document.getElementById('micBtn').classList.add('active');
-    document.getElementById('micLabel').textContent = 'Recording...';
-    document.getElementById('micLabel').classList.add('active');
-    document.getElementById('errorBar').style.display = 'none';
-  } catch (e) {
-    if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
-      showError('Microphone permission denied. Allow mic access in browser settings.');
-    } else {
-      showError('Microphone error: ' + e.message);
+        const stream = audioStream;
+        mediaRecorder.onstop = async () => {
+          isRecording = false;
+          document.getElementById('micBtn').classList.remove('active');
+          document.getElementById('micLabel').textContent = 'Processing...';
+          document.getElementById('micLabel').classList.remove('active');
+
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+          }
+
+          if (audioBlob.size < 1000) {
+            showError('No audio detected. Please try again.');
+            document.getElementById('micLabel').textContent = 'Tap to speak';
+            return;
+          }
+
+          await transcribeAudio(audioBlob);
+        };
+
+        mediaRecorder.onerror = () => {
+          stopRecording();
+          showError('Microphone error. Please try again.');
+        };
+
+        mediaRecorder.start();
+        isRecording = true;
+        document.getElementById('micBtn').classList.add('active');
+        document.getElementById('micLabel').textContent = 'Recording...';
+        document.getElementById('micLabel').classList.add('active');
+        document.getElementById('errorBar').style.display = 'none';
+      } catch (e) {
+        if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+          showError('Microphone permission denied. Allow mic access in browser settings.');
+        } else {
+          showError('Microphone error: ' + e.message);
+        }
+      }
     }
-  }
-}
 
-function stopRecording() {
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.stop();
-  }
-  isRecording = false;
-  document.getElementById('micBtn').classList.remove('active');
-  document.getElementById('micLabel').textContent = 'Tap to speak';
-  document.getElementById('micLabel').classList.remove('active');
-}
-
-async function transcribeAudio(audioBlob) {
-  const formData = new FormData();
-  formData.append('model', 'whisper-large-v3');
-  formData.append('file', audioBlob, 'audio.webm');
-  formData.append('language', 'hi');
-  formData.append('response_format', 'json');
-
-  try {
-    const resp = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + geminiKey },
-      body: formData
-    });
-
-    if (!resp.ok) {
-      const errText = await resp.text();
-      let msg = 'Groq STT error ' + resp.status;
-      try { const j = JSON.parse(errText); msg = j.error?.message || msg; } catch (_) {}
-      throw new Error(msg);
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+      }
+      isRecording = false;
+      document.getElementById('micBtn').classList.remove('active');
+      document.getElementById('micLabel').textContent = 'Tap to speak';
+      document.getElementById('micLabel').classList.remove('active');
     }
 
-    const data = await resp.json();
-    const transcript = (data.text || '').trim();
-    document.getElementById('transcriptText').textContent = transcript || '(empty)';
+    async function transcribeAudio(audioBlob) {
+      const formData = new FormData();
+      formData.append('model', 'whisper-large-v3');
+      formData.append('file', audioBlob, 'audio.webm');
+      formData.append('language', 'hi');
+      formData.append('response_format', 'json');
 
-    if (transcript) {
-      sendToBot(transcript);
+      try {
+        const resp = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + geminiKey },
+          body: formData
+        });
+
+        if (!resp.ok) {
+          const errText = await resp.text();
+          let msg = 'Groq STT error ' + resp.status;
+          try { const j = JSON.parse(errText); msg = j.error?.message || msg; } catch (_) { }
+          throw new Error(msg);
+        }
+
+        const data = await resp.json();
+        const transcript = (data.text || '').trim();
+        document.getElementById('transcriptText').textContent = transcript || '(empty)';
+
+        if (transcript) {
+          sendToBot(transcript);
+        }
+      } catch (e) {
+        showError('Transcription failed: ' + e.message);
+      } finally {
+        document.getElementById('micLabel').textContent = 'Tap to speak';
+      }
     }
-  } catch (e) {
-    showError('Transcription failed: ' + e.message);
-  } finally {
-    document.getElementById('micLabel').textContent = 'Tap to speak';
-  }
-}
 
-// ============================================================
-// --- TTS ---
-// ============================================================
+    // ============================================================
+    // --- TTS ---
+    // ============================================================
 let currentUtterance = null;
-let ttsReady = false;
-
-function primeTTS() {
-  const synth = window.speechSynthesis;
-  if (!synth) return;
-  const dummy = new SpeechSynthesisUtterance('');
-  dummy.volume = 0;
-  synth.speak(dummy);
-  setTimeout(() => { synth.cancel(); ttsReady = true; }, 50);
-}
 
 function speakText(text) {
   const synth = window.speechSynthesis;
@@ -328,181 +552,192 @@ function speakText(text) {
     synth.resume();
 
     const utterance = new SpeechSynthesisUtterance(text);
+        let voices = synth.getVoices();
 
-    let voices = synth.getVoices();
-    if (!voices.length) voices = synth.getVoices();
-    const indianVoice = voices.find(v =>
-      v.lang.startsWith('hi') || v.lang.startsWith('en-IN') ||
-      v.lang.startsWith('te') || v.name.toLowerCase().includes('india')
-    );
-    if (indianVoice) utterance.voice = indianVoice;
+        const indianVoice = voices.find(v =>
+          v.lang.startsWith('hi') || v.lang.startsWith('en-IN') ||
+          v.lang.startsWith('te') || v.name.toLowerCase().includes('india')
+        );
+        if (indianVoice) utterance.voice = indianVoice;
 
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
 
-    utterance.onstart = () => {
-      document.getElementById('stopBtn').disabled = false;
-    };
-    utterance.onend = () => {
+        utterance.onstart = () => document.getElementById('stopBtn').disabled = false;
+        utterance.onend = () => {
+          document.getElementById('stopBtn').disabled = true;
+          currentUtterance = null;
+        };
+        utterance.onerror = (e) => {
+          // Retry once on interrupted error
+          if (e.error === 'interrupted') {
+            setTimeout(() => synth.speak(utterance), 300);
+            return;
+          }
+          document.getElementById('stopBtn').disabled = true;
+        };
+
+        currentUtterance = utterance;
+        synth.speak(utterance);
+      };
+
+      // Chrome on HTTPS needs voices to be loaded first
+      let voices = synth.getVoices();
+      if (voices.length > 0) {
+        trySpeak();
+      } else {
+        synth.onvoiceschanged = () => {
+          synth.onvoiceschanged = null;
+          trySpeak();
+        };
+      }
+    }
+    function stopSpeaking() {
+      window.speechSynthesis.cancel();
       document.getElementById('stopBtn').disabled = true;
       currentUtterance = null;
-    };
-    utterance.onerror = (e) => {
-      document.getElementById('stopBtn').disabled = true;
-      currentUtterance = null;
-    };
+    }
 
-    currentUtterance = utterance;
-    synth.speak(utterance);
-  }, 100);
-}
+    // Load voices early
+    if (window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+    }
 
-function stopSpeaking() {
-  window.speechSynthesis.cancel();
-  document.getElementById('stopBtn').disabled = true;
-  currentUtterance = null;
-}
+    // ============================================================
+    // --- GROQ API ---
+    // ============================================================
+    const GROQ_SYSTEM = 'You are a helpful voice assistant. Always reply in short 1-2 sentence Hinglish or Telugu-mix responses (romanized script only, no Devanagari). Handle greetings, name capture, demo scheduling, and help requests naturally.';
 
-// Load voices early
-if (window.speechSynthesis) {
-  window.speechSynthesis.getVoices();
-  window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
-}
+    async function callGemini(userText) {
+      const messages = [];
+      messages.push({ role: 'system', content: GROQ_SYSTEM });
+      for (const turn of conversation) {
+        messages.push({ role: turn.role === 'user' ? 'user' : 'assistant', content: turn.parts[0].text });
+      }
+      messages.push({ role: 'user', content: userText });
+      conversation.push({ role: 'user', parts: [{ text: userText }] });
 
-// ============================================================
-// --- GROQ API ---
-// ============================================================
-const GROQ_SYSTEM = 'You are a helpful voice assistant. Always reply in short 1-2 sentence Hinglish or Telugu-mix responses (romanized script only, no Devanagari). Handle greetings, name capture, demo scheduling, and help requests naturally.';
+      const body = {
+        model: 'llama-3.3-70b-versatile',
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 200
+      };
 
-async function callGemini(userText) {
-  const messages = [];
-  messages.push({ role: 'system', content: GROQ_SYSTEM });
-  for (const turn of conversation) {
-    messages.push({ role: turn.role === 'user' ? 'user' : 'assistant', content: turn.parts[0].text });
-  }
-  messages.push({ role: 'user', content: userText });
-  conversation.push({ role: 'user', parts: [{ text: userText }] });
-
-  const body = {
-    model: 'llama-3.3-70b-versatile',
-    messages: messages,
-    temperature: 0.7,
-    max_tokens: 200
-  };
-
-  try {
-    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + geminiKey
-      },
-      body: JSON.stringify(body)
-    });
-
-    if (!resp.ok) {
-      const errData = await resp.text();
-      let msg = 'Groq API error ' + resp.status;
       try {
-        const j = JSON.parse(errData);
-        msg = j.error?.message || msg;
-      } catch (_) {}
-      throw new Error(msg);
+        const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + geminiKey
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (!resp.ok) {
+          const errData = await resp.text();
+          let msg = 'Groq API error ' + resp.status;
+          try {
+            const j = JSON.parse(errData);
+            msg = j.error?.message || msg;
+          } catch (_) { }
+          throw new Error(msg);
+        }
+
+        const data = await resp.json();
+        const reply = data.choices?.[0]?.message?.content || 'Sorry, I could not understand.';
+        conversation.push({ role: 'model', parts: [{ text: reply }] });
+        return reply;
+      } catch (e) {
+        throw e;
+      }
     }
 
-    const data = await resp.json();
-    const reply = data.choices?.[0]?.message?.content || 'Sorry, I could not understand.';
-    conversation.push({ role: 'model', parts: [{ text: reply }] });
-    return reply;
-  } catch (e) {
-    throw e;
-  }
-}
+    // ============================================================
+    // --- UI ---
+    // ============================================================
+    function appendMessage(type, text) {
+      const container = document.getElementById('chatContainer');
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-// ============================================================
-// --- UI ---
-// ============================================================
-function appendMessage(type, text) {
-  const container = document.getElementById('chatContainer');
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      chatMessages.push({ type, text, time: now.toISOString() });
 
-  chatMessages.push({ type, text, time: now.toISOString() });
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'msg ' + type;
 
-  const msgDiv = document.createElement('div');
-  msgDiv.className = 'msg ' + type;
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = text;
 
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble';
-  bubble.textContent = text;
+      const timeEl = document.createElement('div');
+      timeEl.className = 'time';
+      timeEl.textContent = timeStr;
 
-  const timeEl = document.createElement('div');
-  timeEl.className = 'time';
-  timeEl.textContent = timeStr;
-
-  msgDiv.appendChild(bubble);
-  msgDiv.appendChild(timeEl);
-  container.appendChild(msgDiv);
-  container.scrollTop = container.scrollHeight;
-}
-
-function showTyping(show) {
-  document.getElementById('typingIndicator').style.display = show ? 'flex' : 'none';
-}
-
-function showError(msg) {
-  const bar = document.getElementById('errorBar');
-  bar.textContent = msg;
-  bar.style.display = 'block';
-}
-
-async function sendToBot(userText) {
-  if (isWaiting) return;
-  isWaiting = true;
-  appendMessage('user', userText);
-  showTyping(true);
-
-  try {
-    const reply = await callGemini(userText);
-    showTyping(false);
-    appendMessage('bot', reply);
-    speakText(reply);
-  } catch (e) {
-    showTyping(false);
-    showError('Failed to get AI response: ' + e.message);
-  }
-  isWaiting = false;
-}
-
-function downloadLogs() {
-  const data = {
-    exportedAt: new Date().toISOString(),
-    messages: chatMessages
-  };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'voicebot-conversation-' + Date.now() + '.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-// ============================================================
-// --- EVENT BINDINGS ---
-// ============================================================
-document.addEventListener('DOMContentLoaded', () => {
-  // Mic toggle
-  document.getElementById('micBtn').addEventListener('click', () => {
-    if (isRecording) {
-      stopRecording();
-    } else {
-      startListening();
+      msgDiv.appendChild(bubble);
+      msgDiv.appendChild(timeEl);
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
     }
-  });
+
+    function showTyping(show) {
+      document.getElementById('typingIndicator').style.display = show ? 'flex' : 'none';
+    }
+
+    function showError(msg) {
+      const bar = document.getElementById('errorBar');
+      bar.textContent = msg;
+      bar.style.display = 'block';
+    }
+
+    async function sendToBot(userText) {
+      if (isWaiting) return;
+      isWaiting = true;
+      appendMessage('user', userText);
+      showTyping(true);
+
+      try {
+        const reply = await callGemini(userText);
+        showTyping(false);
+        appendMessage('bot', reply);
+        speakText(reply);
+      } catch (e) {
+        showTyping(false);
+        showError('Failed to get AI response: ' + e.message);
+      }
+      isWaiting = false;
+    }
+
+    function downloadLogs() {
+      const data = {
+        exportedAt: new Date().toISOString(),
+        messages: chatMessages
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'voicebot-conversation-' + Date.now() + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // ============================================================
+    // --- EVENT BINDINGS ---
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      // Mic toggle
+      document.getElementById('micBtn').addEventListener('click', () => {
+        if (isRecording) {
+          stopRecording();
+        } else {
+          startListening();
+        }
+      });
 
   // Save API key
   document.getElementById('saveKeyBtn').addEventListener('click', () => {
@@ -514,48 +749,51 @@ document.addEventListener('DOMContentLoaded', () => {
     geminiKey = val;
     document.getElementById('errorBar').style.display = 'none';
     document.getElementById('apiKeyInput').type = 'password';
+
+    // Prime TTS on HTTPS (must be inside user gesture)
+    const synth = window.speechSynthesis;
+    const dummy = new SpeechSynthesisUtterance(' ');
+    dummy.volume = 0;
+    synth.speak(dummy);
+    setTimeout(() => synth.cancel(), 200);
   });
 
-  // Send text message
-  document.getElementById('sendBtn').addEventListener('click', () => {
-    const input = document.getElementById('textInput');
-    const text = input.value.trim();
-    if (!text) return;
-    if (!geminiKey) { showError('Please save your Groq API key first.'); return; }
-    if (isWaiting) { showError('Please wait for the bot to finish.'); return; }
-    input.value = '';
-    sendToBot(text);
-  });
-  document.getElementById('textInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') document.getElementById('sendBtn').click();
-  });
+      // Send text message
+      document.getElementById('sendBtn').addEventListener('click', () => {
+        const input = document.getElementById('textInput');
+        const text = input.value.trim();
+        if (!text) return;
+        if (!geminiKey) { showError('Please save your Groq API key first.'); return; }
+        if (isWaiting) { showError('Please wait for the bot to finish.'); return; }
+        input.value = '';
+        sendToBot(text);
+      });
+      document.getElementById('textInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('sendBtn').click();
+      });
 
-  // Stop speaking
-  document.getElementById('stopBtn').addEventListener('click', stopSpeaking);
+      // Stop speaking
+      document.getElementById('stopBtn').addEventListener('click', stopSpeaking);
 
-  // Download logs
-  document.getElementById('downloadBtn').addEventListener('click', downloadLogs);
+      // Download logs
+      document.getElementById('downloadBtn').addEventListener('click', downloadLogs);
 
-  // Enter key in API input
-  document.getElementById('apiKeyInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') document.getElementById('saveKeyBtn').click();
-  });
+      // Enter key in API input
+      document.getElementById('apiKeyInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('saveKeyBtn').click();
+      });
 
-  // Auto-load default API key
-  const defaultKey = document.getElementById('apiKeyInput').value.trim();
-  if (defaultKey) {
-    geminiKey = defaultKey;
-    document.getElementById('apiKeyInput').type = 'password';
-  }
+      // Auto-load default API key
+      const defaultKey = document.getElementById('apiKeyInput').value.trim();
+      if (defaultKey) {
+        geminiKey = defaultKey;
+        document.getElementById('apiKeyInput').type = 'password';
+      }
 
-  // Wake speech synthesis on first user click (required by Chrome HTTPS policy)
-  document.addEventListener('click', () => {
-    if (!ttsReady) { primeTTS(); }
-  }, { once: true });
-
-  // Welcome message
-  appendMessage('bot', 'Namaste! \uD83D\uDC4B Main aapka voice assistant hoon. Aap kya chahenge?');
-});
-</script>
+      // Welcome message
+      appendMessage('bot', 'Namaste! \uD83D\uDC4B Main aapka voice assistant hoon. Aap kya chahenge?');
+    });
+  </script>
 </body>
+
 </html>
