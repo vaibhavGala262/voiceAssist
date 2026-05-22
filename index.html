@@ -537,23 +537,24 @@
     // ============================================================
     // --- TTS ---
     // ============================================================
-let currentUtterance = null;
+    let currentUtterance = null;
 
-function speakText(text) {
-  const synth = window.speechSynthesis;
-  if (!synth) return;
+    function speakText(text) {
+      const synth = window.speechSynthesis;
+      if (!synth) return;
 
-  stopSpeaking();
+      stopSpeaking();
 
-  setTimeout(() => {
-    const synth = window.speechSynthesis;
-    if (!synth) return;
+      setTimeout(() => {
+        const synth = window.speechSynthesis;
+        if (!synth) return;
 
-    synth.resume();
+        synth.resume();
 
-    const utterance = new SpeechSynthesisUtterance(text);
+        const utterance = new SpeechSynthesisUtterance(text);
+
         let voices = synth.getVoices();
-
+        if (!voices.length) voices = synth.getVoices();
         const indianVoice = voices.find(v =>
           v.lang.startsWith('hi') || v.lang.startsWith('en-IN') ||
           v.lang.startsWith('te') || v.name.toLowerCase().includes('india')
@@ -569,30 +570,16 @@ function speakText(text) {
           document.getElementById('stopBtn').disabled = true;
           currentUtterance = null;
         };
-        utterance.onerror = (e) => {
-          // Retry once on interrupted error
-          if (e.error === 'interrupted') {
-            setTimeout(() => synth.speak(utterance), 300);
-            return;
-          }
+        utterance.onerror = () => {
           document.getElementById('stopBtn').disabled = true;
+          currentUtterance = null;
         };
 
         currentUtterance = utterance;
         synth.speak(utterance);
-      };
-
-      // Chrome on HTTPS needs voices to be loaded first
-      let voices = synth.getVoices();
-      if (voices.length > 0) {
-        trySpeak();
-      } else {
-        synth.onvoiceschanged = () => {
-          synth.onvoiceschanged = null;
-          trySpeak();
-        };
-      }
+      }, 100);
     }
+
     function stopSpeaking() {
       window.speechSynthesis.cancel();
       document.getElementById('stopBtn').disabled = true;
