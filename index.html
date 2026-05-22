@@ -187,94 +187,118 @@ let conversation = [];           // {role: "user"|"model", parts: [{text: "..."}
 let chatMessages = [];           // {type: "user"|"bot", text, time}
 let isRecording = false;
 let isWaiting = false;
-let recognition = null;
+let mediaRecorder = null;
+let audioChunks = [];
+let audioStream = null;
 
 // ============================================================
-// --- STT ---
+// --- STT (MediaRecorder + Groq Whisper) ---
 // ============================================================
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (!SpeechRecognition) {
-  document.getElementById('errorBar').textContent = 'Speech recognition not supported in this browser. Use Chrome.';
-  document.getElementById('errorBar').style.display = 'block';
-}
-
-function createRecognition() {
-  if (!SpeechRecognition) return null;
-  const rec = new SpeechRecognition();
-  rec.lang = 'hi-IN';
-  rec.continuous = false;
-  rec.interimResults = false;
-  rec.maxAlternatives = 1;
-  return rec;
-}
-
-function startListening() {
+async function startListening() {
   if (!geminiKey) {
-    showError('Please enter and save your Gemini API key first.');
+    showError('Please save your Groq API key first.');
     return;
   }
-  if (!SpeechRecognition) return;
   if (isWaiting) {
     showError('Please wait for the bot to finish responding.');
     return;
   }
-
   stopSpeaking();
 
   try {
-    recognition = createRecognition();
-    if (!recognition) return;
+    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(audioStream, { mimeType: 'audio/webm' });
 
-    recognition.onstart = () => {
-      isRecording = true;
-      document.getElementById('micBtn').classList.add('active');
-      document.getElementById('micLabel').textContent = 'Listening...';
-      document.getElementById('micLabel').classList.add('active');
-      document.getElementById('errorBar').style.display = 'none';
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) audioChunks.push(e.data);
     };
 
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript.trim();
-      document.getElementById('transcriptText').textContent = transcript || '(empty)';
-      stopListening();
-      if (transcript) sendToBot(transcript);
-    };
+    mediaRecorder.onstop = async () => {
+      isRecording = false;
+      document.getElementById('micBtn').classList.remove('active');
+      document.getElementById('micLabel').textContent = 'Processing...';
+      document.getElementById('micLabel').classList.remove('active');
 
-    recognition.onerror = (event) => {
-      stopListening();
-      if (event.error === 'not-allowed') {
-        showError('Microphone permission denied. Please allow mic access in your browser settings.');
-      } else if (event.error === 'no-speech') {
-        showError('No speech detected. Please try again.');
-      } else if (event.error === 'network') {
-        showError('Network error: Your firewall/antivirus may be blocking Google\'s speech servers. Type your message below instead.');
-      } else {
-        showError('Speech error: ' + event.error);
-      }
-    };
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      audioStream.getTracks().forEach(t => t.stop());
+      audioStream = null;
 
-    recognition.onend = () => {
-      if (isRecording) {
-        isRecording = false;
-        document.getElementById('micBtn').classList.remove('active');
+      if (audioBlob.size < 1000) {
+        showError('No audio detected. Please try again.');
         document.getElementById('micLabel').textContent = 'Tap to speak';
-        document.getElementById('micLabel').classList.remove('active');
+        return;
       }
+
+      await transcribeAudio(audioBlob);
     };
 
-    recognition.start();
+    mediaRecorder.onerror = () => {
+      stopRecording();
+      showError('Microphone error. Please try again.');
+    };
+
+    mediaRecorder.start();
+    isRecording = true;
+    document.getElementById('micBtn').classList.add('active');
+    document.getElementById('micLabel').textContent = 'Recording...';
+    document.getElementById('micLabel').classList.add('active');
+    document.getElementById('errorBar').style.display = 'none';
   } catch (e) {
-    showError('Failed to start listening: ' + e.message);
+    if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+      showError('Microphone permission denied. Allow mic access in browser settings.');
+    } else {
+      showError('Microphone error: ' + e.message);
+    }
   }
 }
 
-function stopListening() {
-  if (recognition && isRecording) {
-    try { recognition.stop(); } catch (_) {}
-    isRecording = false;
-    document.getElementById('micBtn').classList.remove('active');
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  }
+  if (audioStream) {
+    audioStream.getTracks().forEach(t => t.stop());
+    audioStream = null;
+  }
+  isRecording = false;
+  document.getElementById('micBtn').classList.remove('active');
+  document.getElementById('micLabel').textContent = 'Tap to speak';
+  document.getElementById('micLabel').classList.remove('active');
+}
+
+async function transcribeAudio(audioBlob) {
+  const formData = new FormData();
+  formData.append('model', 'whisper-large-v3');
+  formData.append('file', audioBlob, 'audio.webm');
+  formData.append('language', 'hi');
+  formData.append('response_format', 'json');
+
+  try {
+    const resp = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + geminiKey },
+      body: formData
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      let msg = 'Groq STT error ' + resp.status;
+      try { const j = JSON.parse(errText); msg = j.error?.message || msg; } catch (_) {}
+      throw new Error(msg);
+    }
+
+    const data = await resp.json();
+    const transcript = (data.text || '').trim();
+    document.getElementById('transcriptText').textContent = transcript || '(empty)';
+
+    if (transcript) {
+      sendToBot(transcript);
+    }
+  } catch (e) {
+    showError('Transcription failed: ' + e.message);
+  } finally {
     document.getElementById('micLabel').textContent = 'Tap to speak';
-    document.getElementById('micLabel').classList.remove('active');
   }
 }
 
@@ -460,7 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Mic toggle
   document.getElementById('micBtn').addEventListener('click', () => {
     if (isRecording) {
-      stopListening();
+      stopRecording();
     } else {
       startListening();
     }
@@ -470,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('saveKeyBtn').addEventListener('click', () => {
     const val = document.getElementById('apiKeyInput').value.trim();
     if (!val) {
-      showError('Please enter a valid Gemini API key.');
+      showError('Please enter a valid Groq API key.');
       return;
     }
     geminiKey = val;
